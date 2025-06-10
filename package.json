@@ -1,5 +1,5 @@
 {
-  "name": "test",
+  "name": "sass_based_crm",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,7 @@
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "globals": "^16.0.0",
+    "googleapis": "^150.0.1",
     "helmet": "^8.1.0",
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
