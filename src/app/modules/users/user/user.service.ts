@@ -3,7 +3,10 @@
 import { UserProfile } from "../userProfile/userProfile.model";
 
 const getMyData = async (userId: string) => {
-  const user = await UserProfile.findOne({ user: userId }).populate("user");
+  const user = await UserProfile.findOne({ user: userId }).populate({
+    path: "user",
+    select: "-authentication",
+  });
   return user;
 };
 

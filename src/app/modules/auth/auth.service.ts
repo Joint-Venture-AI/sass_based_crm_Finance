@@ -161,6 +161,7 @@ const verifyUser = async (
 
   let updatedUser;
   let token = null;
+
   if (user.isVerified) {
     token = jsonWebToken.generateToken(
       { userEmail: user.email },
