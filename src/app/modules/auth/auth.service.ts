@@ -14,6 +14,7 @@ import { appConfig } from "../../config";
 import { IUser } from "../users/user/user.interface";
 import mongoose from "mongoose";
 import { isTimeExpired } from "../../utils/helper/isTimeExpire";
+import { dispatchJob } from "../../rabbitMq/jobs";
 
 const createUser = async (data: {
   email: string;
@@ -58,11 +59,14 @@ const createUser = async (data: {
     };
     await UserProfile.create([userProfileData], { session });
 
-    await sendEmail(
-      data.email,
-      "Email Verification Code",
-      `Your code is: ${otp}`
-    );
+    await dispatchJob({
+      type: "email",
+      data: {
+        to: data.email,
+        subject: "Email Verification Code",
+        text: `Your code is: ${otp}`,
+      },
+    });
 
     await session.commitTransaction();
     session.endSession();

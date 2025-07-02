@@ -10,7 +10,9 @@ export const appConfig = {
     node_env: process.env.NODE_ENV,
     ip: process.env.IP_ADDRESS,
   },
-
+  rabbitMq: {
+    url: process.env.RABBITMQ_URL,
+  },
   jwt: {
     jwt_access_secret: process.env.JWT_ACCESS_SECRET,
     jwt_access_exprire: process.env.JWT_ACCESS_EXPIRE,
@@ -41,5 +43,11 @@ export const appConfig = {
   },
   encrypt: {
     s_key: process.env.ENCRYPTION_SECRET_KEY,
+  },
+  payment: {
+    stripe: {
+      secret_key: process.env.SECRET_KEY,
+      webhook: process.env.STRIPE_WEBHOOK_SECRET,
+    },
   },
 };

@@ -1,0 +1,91 @@
+services:
+  sass-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: sass-rabbitmq
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - sass-net
+
+  sass-express:
+    build: .
+    depends_on:
+      - sass-rabbitmq
+      - mongo1-sass
+      - mongo2-sass
+      - mongo3-sass
+    env_file:
+      - .env
+    ports:
+      - "4002:4000"
+    volumes:
+      - .:/app
+    command: npm run dev
+    networks:
+      - sass-net
+
+  mongo1-sass:
+    container_name: mongo1-sass
+    hostname: mongo1-sass
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - 20001:27017
+    restart: always
+    command: mongod --replSet rs01
+    volumes:
+      - /opt/mongo1-sass/:/data/db
+    networks:
+      - sass-net
+
+  mongo2-sass:
+    container_name: mongo2-sass
+    hostname: mongo2-sass
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - 20002:27017
+    restart: always
+    command: mongod --replSet rs01
+    volumes:
+      - /opt/mongo2-sass/:/data/db
+    networks:
+      - sass-net
+
+  mongo3-sass:
+    container_name: mongo3-sass
+    hostname: mongo3-sass
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - 20003:27017
+    restart: always
+    command: mongod --replSet rs01
+    volumes:
+      - /opt/mongo3-sass/:/data/db
+    networks:
+      - sass-net
+
+  mongo_init:
+    image: mongo
+    restart: "no"
+    depends_on:
+      - mongo1-sass
+      - mongo2-sass
+      - mongo3-sass
+    volumes:
+      - ./rs-init.sh:/opt/rs-init.sh
+    entrypoint: [ "/usr/bin/bash", "/opt/rs-init.sh" ]
+    networks:
+      - sass-net
+
+networks:
+  sass-net:
+    driver: bridge
