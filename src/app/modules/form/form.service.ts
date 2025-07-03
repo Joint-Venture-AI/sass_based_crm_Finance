@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -124,8 +123,8 @@ const createForm = async (title: string, questions: Question[]) => {
       ...formInfo,
     };
   } catch (err) {
-    console.error("❌ Error creating Google Form:", err);
-    throw new Error("Failed to create form");
+    console.log("❌ Error creating Google Form:", err);
+    throw new Error(err as any);
   }
 };
 

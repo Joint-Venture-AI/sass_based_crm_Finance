@@ -6,6 +6,7 @@ dotenv.config();
 
 const SCOPES = [
   "https://www.googleapis.com/auth/forms.body",
+
   "https://www.googleapis.com/auth/forms.responses.readonly",
 ];
 
@@ -14,6 +15,5 @@ export const getAuthClient = async () => {
     keyFile: path.join(__dirname, "secret.json"),
     scopes: SCOPES,
   });
-
   return await auth.getClient();
 };
