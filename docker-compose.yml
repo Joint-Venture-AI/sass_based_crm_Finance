@@ -1,91 +1,98 @@
 services:
-  sass-rabbitmq:
+  sass-rabbitmq:                   # <-- CHANGE: Service name, make unique for your project (e.g., myproj-rabbitmq)
     image: rabbitmq:3-management
-    container_name: sass-rabbitmq
+    container_name: sass-rabbitmq  # <-- CHANGE: Container name, make unique
     ports:
-      - "5673:5672"
-      - "15673:15672"
+      - "5673:5672"                # <-- CHANGE: Host port (5673), must be unique if running multiple projects
+      - "15673:15672"              # <-- CHANGE: Host port (15673), must be unique
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq-data-sass:/var/lib/rabbitmq  # <-- CHANGE: Volume path, make unique (e.g., /rabbitmq-data-sass2)
     networks:
-      - sass-net
+      - sass-net                   # <-- CHANGE: Network name, make unique
+    restart: always
 
-  sass-express:
+  sass-express:                    # <-- CHANGE: Service name, make unique (e.g., myproj-express)
     build: .
     depends_on:
-      - sass-rabbitmq
-      - mongo1-sass
+      - sass-rabbitmq              # <-- CHANGE: Match new rabbitmq service name
+      - mongo1-sass                # <-- CHANGE: Match new mongo service names
       - mongo2-sass
       - mongo3-sass
     env_file:
       - .env
     ports:
-      - "4002:4000"
+      - "4002:4000"                # <-- CHANGE: Host port (4002), must be unique
     volumes:
       - .:/app
     command: npm run dev
     networks:
-      - sass-net
+      - sass-net                   # <-- CHANGE: Network name, make unique
 
-  mongo1-sass:
-    container_name: mongo1-sass
-    hostname: mongo1-sass
+  mongo1-sass:                     # <-- CHANGE: Service name, make unique (e.g., mongo1-myproj)
+    container_name: mongo1-sass    # <-- CHANGE: Container name, make unique
+    hostname: mongo1-sass          # <-- CHANGE: Hostname, make unique
     image: mongo
     expose:
       - 27017
     ports:
-      - 20001:27017
+      - 20001:27017                # <-- CHANGE: Host port (20001), must be unique
     restart: always
-    command: mongod --replSet rs01
+    command: mongod --replSet rs01 
     volumes:
-      - /opt/mongo1-sass/:/data/db
+      - /opt/mongo1-sass/:/data/db # <-- CHANGE: Volume path, make unique (e.g., /opt/mongo1-myproj/)
     networks:
-      - sass-net
+      - sass-net                   # <-- CHANGE: Network name, make unique
 
-  mongo2-sass:
-    container_name: mongo2-sass
-    hostname: mongo2-sass
+  mongo2-sass:                     # <-- CHANGE: Service name, make unique
+    container_name: mongo2-sass    # <-- CHANGE: Container name, make unique
+    hostname: mongo2-sass          # <-- CHANGE: Hostname, make unique
     image: mongo
     expose:
       - 27017
     ports:
-      - 20002:27017
+      - 20002:27017                # <-- CHANGE: Host port (20002), must be unique
     restart: always
     command: mongod --replSet rs01
     volumes:
-      - /opt/mongo2-sass/:/data/db
+      - /opt/mongo2-sass/:/data/db # <-- CHANGE: Volume path, make unique
     networks:
-      - sass-net
+      - sass-net                   # <-- CHANGE: Network name, make unique
 
-  mongo3-sass:
-    container_name: mongo3-sass
-    hostname: mongo3-sass
+  mongo3-sass:                     # <-- CHANGE: Service name, make unique
+    container_name: mongo3-sass    # <-- CHANGE: Container name, make unique
+    hostname: mongo3-sass          # <-- CHANGE: Hostname, make unique
     image: mongo
     expose:
       - 27017
     ports:
-      - 20003:27017
+      - 20003:27017                # <-- CHANGE: Host port (20003), must be unique
     restart: always
     command: mongod --replSet rs01
     volumes:
-      - /opt/mongo3-sass/:/data/db
+      - /opt/mongo3-sass/:/data/db # <-- CHANGE: Volume path, make unique
     networks:
-      - sass-net
+      - sass-net                   # <-- CHANGE: Network name, make unique
 
-  mongo_init:
+  mongo_init:                      # <-- CHANGE: Service name, make unique (e.g., mongo_init_myproj)
     image: mongo
     restart: "no"
     depends_on:
-      - mongo1-sass
-      - mongo2-sass
-      - mongo3-sass
+      - mongo1-sass                # <-- CHANGE: Match new mongo service names
+      - mongo2-sass                # <-- CHANGE: Match new mongo service names
+      - mongo3-sass                # <-- CHANGE: Match new mongo service names
     volumes:
       - ./rs-init.sh:/opt/rs-init.sh
     entrypoint: [ "/usr/bin/bash", "/opt/rs-init.sh" ]
     networks:
-      - sass-net
+      - sass-net                   # <-- CHANGE: Network name, make unique
+
+
+volumes:                      
+  rabbitmq-data-sass:          
 
 networks:
-  sass-net:
+  sass-net:                        # <-- CHANGE: Network name, make unique (e.g., myproj-net)
     driver: bridge
