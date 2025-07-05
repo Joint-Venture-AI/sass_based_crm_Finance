@@ -14,7 +14,7 @@ import { appConfig } from "../../config";
 import { IUser } from "../users/user/user.interface";
 import mongoose from "mongoose";
 import { isTimeExpired } from "../../utils/helper/isTimeExpire";
-import { dispatchJob } from "../../rabbitMq/jobs";
+import { publishJob } from "../../rabbitMq/publisher";
 
 const createUser = async (data: {
   email: string;
@@ -59,13 +59,10 @@ const createUser = async (data: {
     };
     await UserProfile.create([userProfileData], { session });
 
-    await dispatchJob({
-      type: "email",
-      data: {
-        to: data.email,
-        subject: "Email Verification Code",
-        text: `Your code is: ${otp}`,
-      },
+    await publishJob("emailQueue", {
+      to: data.email,
+      subject: "Email Verification Code",
+      body: otp.toString(),
     });
 
     await session.commitTransaction();
@@ -161,7 +158,6 @@ const verifyUser = async (
 
   let updatedUser;
   let token = null;
-
   if (user.isVerified) {
     token = jsonWebToken.generateToken(
       { userEmail: user.email },

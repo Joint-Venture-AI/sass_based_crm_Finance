@@ -21,14 +21,15 @@ const superUserProfile = {
 };
 
 const seedAdmin = async (): Promise<void> => {
+  const isExistSuperAdmin = await User.findOne({
+    role: userRoles.ADMIN,
+  });
+
   const session = await mongoose.startSession();
   session.startTransaction();
   superUser.password = await getHashedPassword(superUser.password as string);
-  try {
-    const isExistSuperAdmin = await User.findOne({
-      role: userRoles.ADMIN,
-    }).session(session);
 
+  try {
     if (!isExistSuperAdmin) {
       const data = await User.create([superUser], { session });
       await UserProfile.create([{ ...superUserProfile, user: data[0]._id }], {
@@ -40,13 +41,14 @@ const seedAdmin = async (): Promise<void> => {
     }
 
     await session.commitTransaction();
-    session.endSession();
+    logger.info("Transaction committed successfully");
   } catch (error: any) {
-    logger.error(`Faield to create Admin.${error} `);
+    logger.error(`Failed to create Admin. ${error.message || error}`);
 
     await session.abortTransaction();
+    logger.info("Transaction aborted due to error");
+  } finally {
     session.endSession();
-    //throw error;
   }
 };
 

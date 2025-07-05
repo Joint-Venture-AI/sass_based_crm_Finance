@@ -40,7 +40,7 @@ const verifyUser = catchAsync(async (req, res, next) => {
   sendResponse(res, {
     success: true,
     statusCode: status.OK,
-    message: "Verification Successfull.",
+    message: "Email successfully verified.",
     data: result,
   });
 });

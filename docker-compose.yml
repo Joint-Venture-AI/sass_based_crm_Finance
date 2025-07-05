@@ -3,7 +3,7 @@ version: "3.9"
 services:
   sass-rabbitmq:
     image: rabbitmq:3-management
-    container_name: sass-solution
+    container_name: sass-rabbitmq
     ports:
       - "5673:5672"  # Changed left port to avoid conflict with old project
       - "15673:15672" # Changed left port to avoid conflict with old project
@@ -13,7 +13,7 @@ services:
     networks:
       - mongo-cluster
 
-  sass-express:
+  sass-node-express:
     build: .
     depends_on:
       - sass-rabbitmq
@@ -27,9 +27,7 @@ services:
     networks:
       - mongo-cluster
 
-
 networks:
   mongo-cluster:
     external: true
-
 
