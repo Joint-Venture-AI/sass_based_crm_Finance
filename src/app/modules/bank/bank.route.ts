@@ -9,5 +9,6 @@ router.post("/fetch-transection", BankController.fetchTransactions);
 // go-card-sell
 
 router.get("/get-token", BankController.getToken);
+router.post("/build-link", BankController.BuildLink);
 router.post("/call-back", BankController.callBack);
 export const BankRoute = router;

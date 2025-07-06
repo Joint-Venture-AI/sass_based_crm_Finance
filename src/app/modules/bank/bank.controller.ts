@@ -55,6 +55,18 @@ const getToken = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+const BuildLink = catchAsync(async (req, res) => {
+  const result = await BankService.BuildLink(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "oauth-callback successfully",
+    data: result,
+  });
+});
+
 const callBack = catchAsync(async (req, res) => {
   // const token = req.body.token;
   // const result = await BankService.fetchTransactions(token);
@@ -73,4 +85,5 @@ export const BankController = {
   fetchTransactions,
   callBack,
   getToken,
+  BuildLink,
 };

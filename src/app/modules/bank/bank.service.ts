@@ -84,7 +84,36 @@ const getToken = async (data: any) => {
     }
   );
 
-  return res2.data;
+  return { bank: res2.data, token: res.data };
+};
+
+const BuildLink = async (data2: { token: string; ins_Id: string }) => {
+  const data = {
+    redirect: "http://localhost:3000/",
+    institution_id: data2.token,
+    reference: "124151",
+    user_language: "EN",
+  };
+
+  const config = {
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${data2.token}`,
+    },
+  };
+  console.log(data2);
+  try {
+    const response = await axios.post(
+      "https://bankaccountdata.gocardless.com/api/v2/requisitions/",
+      data,
+      config
+    );
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const BankService = {
@@ -92,4 +121,5 @@ export const BankService = {
   exchangePublicToken,
   fetchTransactions,
   getToken,
+  BuildLink,
 };
