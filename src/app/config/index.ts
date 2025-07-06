@@ -61,8 +61,14 @@ export const appConfig = {
   encrypt: {
     s_key: process.env.ENCRYPTION_SECRET_KEY,
   },
-  plaid: {
-    c_Id: process.env.CLIENT_ID,
-    s_Key: process.env.SECRET_KEY,
+  bank_api: {
+    plaid: {
+      c_Id: process.env.CLIENT_ID,
+      s_Key: process.env.SECRET_KEY,
+    },
+    go_card_less: {
+      c_Id: process.env.SECRET_ID_GO,
+      s_Key: process.env.SECRET_KEY_GO,
+    },
   },
 };
