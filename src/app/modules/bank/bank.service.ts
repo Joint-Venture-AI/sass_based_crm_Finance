@@ -57,6 +57,7 @@ const fetchTransactions = async (accessToken: string) => {
   }
 };
 
+// go card less
 const getToken = async (data: any) => {
   console.log(data);
 
