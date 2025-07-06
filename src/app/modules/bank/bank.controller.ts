@@ -2,7 +2,6 @@ import status from "http-status";
 import catchAsync from "../../utils/serverTools/catchAsync";
 import sendResponse from "../../utils/serverTools/sendResponse";
 import { BankService } from "./bank.service";
-import { appConfig } from "../../config";
 
 const getLinkToken = catchAsync(async (req, res) => {
   const result = await BankService.getLinkToken();
@@ -41,12 +40,7 @@ const fetchTransactions = catchAsync(async (req, res) => {
 const getToken = catchAsync(async (req, res) => {
   // const token = req.body.token;
 
-  const data = {
-    secret_id: appConfig.bank_api.go_card_less.c_Id, // Replace with actual secret_id
-    secret_key: appConfig.bank_api.go_card_less.s_Key, // Replace with actual secret_key
-  };
-
-  const result = await BankService.getToken(data);
+  const result = await BankService.getToken();
 
   sendResponse(res, {
     success: true,
@@ -56,8 +50,21 @@ const getToken = catchAsync(async (req, res) => {
   });
 });
 
+const chooseBank = catchAsync(async (req, res) => {
+  // const token = req.body.token;
+
+  const result = await BankService.chooseBank();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Bank fetched successfully",
+    data: result,
+  });
+});
+
 const BuildLink = catchAsync(async (req, res) => {
-  const result = await BankService.BuildLink(req.body);
+  const result = await BankService.BuildLink(req.body.ins_Id);
 
   sendResponse(res, {
     success: true,
@@ -85,5 +92,6 @@ export const BankController = {
   fetchTransactions,
   callBack,
   getToken,
+  chooseBank,
   BuildLink,
 };

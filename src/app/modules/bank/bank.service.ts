@@ -1,8 +1,10 @@
+/* eslint-disable quotes */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import axios from "axios";
 import { client } from "./plaid";
 import { Products, CountryCode } from "plaid"; // Import the Products enum from Plaid SDK
+import { appConfig } from "../../config";
 const getLinkToken = async () => {
   try {
     const response = await client.linkTokenCreate({
@@ -57,73 +59,53 @@ const fetchTransactions = async (accessToken: string) => {
   }
 };
 
-const getToken = async (data: any) => {
-  console.log(data);
+//gocardless
 
+const getToken = async () => {
   const res = await axios.post(
     "https://bankaccountdata.gocardless.com/api/v2/token/new/",
-    data,
+
     {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      secret_id: appConfig.bank_api.go_card_less.c_Id, // Replace with actual secret_id
+      secret_key: appConfig.bank_api.go_card_less.s_Key, // Replace with actual secret_key
     }
   );
 
+  return res.data;
+};
+
+const chooseBank = async () => {
+  const { access } = await getToken();
   const res2 = await axios.get(
     "https://bankaccountdata.gocardless.com/api/v2/institutions/",
     {
       params: {
-        country: "gb", // Country filter, GB for Great Britain
+        country: "GB", // Country filter, GB for Great Britain
       },
       headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${res.data.access}`, // Bearer token for authentication
+        Authorization: `Bearer ${access}`, // Bearer token for authentication
       },
     }
   );
-
-  return { bank: res2.data, token: res.data };
+  return res2.data;
 };
 
-const BuildLink = async (data2: { token: string; ins_Id: string }) => {
-  const data3 = {
-    institution_id: data2.ins_Id,
-    access_scope: ["balances", "details", "transactions"],
-  };
-
-  const config = {
-    headers: {
-      accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${data2.token}`,
-    },
-  };
+const BuildLink = async (ins_Id: string) => {
+  const { access } = await getToken();
 
   try {
-    const res = await axios.post(
-      "https://bankaccountdata.gocardless.com/api/v2/agreements/enduser/",
-      data3,
-      config
+    const { data } = await axios.post(
+      `https://bankaccountdata.gocardless.com/api/v2/requisitions/`,
+      {
+        redirect: "https://httpbin.org/get", //!change to app
+        institution_id: ins_Id,
+        reference: `d-${Date.now()}`,
+      },
+      {
+        headers: { Authorization: `Bearer ${access}` },
+      }
     );
-    console.log(res.data);
-
-    const data = {
-      redirect: "http://localhost:3000/",
-      institution_id: res.data.institution_id,
-      reference: "124151",
-      user_language: "EN",
-      agreement: res.data.id,
-    };
-
-    const response = await axios.post(
-      "https://bankaccountdata.gocardless.com/api/v2/requisitions/",
-      data,
-      config
-    );
-
-    return response.data;
+    return { id: data.id, link: data.link };
   } catch (error: any) {
     throw new Error(error);
   }
@@ -134,5 +116,6 @@ export const BankService = {
   exchangePublicToken,
   fetchTransactions,
   getToken,
+  chooseBank,
   BuildLink,
 };
