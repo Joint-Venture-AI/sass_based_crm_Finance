@@ -88,13 +88,6 @@ const getToken = async (data: any) => {
 };
 
 const BuildLink = async (data2: { token: string; ins_Id: string }) => {
-  const data = {
-    redirect: "http://localhost:3000/",
-    institution_id: data2.token,
-    reference: "124151",
-    user_language: "EN",
-  };
-
   const config = {
     headers: {
       accept: "application/json",
@@ -102,8 +95,15 @@ const BuildLink = async (data2: { token: string; ins_Id: string }) => {
       Authorization: `Bearer ${data2.token}`,
     },
   };
-  console.log(data2);
+
   try {
+    const data = {
+      redirect: "https://httpbin.org/get",
+      institution_id: data2.ins_Id,
+      reference: "124151asdasd",
+      user_language: "EN",
+    };
+
     const response = await axios.post(
       "https://bankaccountdata.gocardless.com/api/v2/requisitions/",
       data,
@@ -111,8 +111,8 @@ const BuildLink = async (data2: { token: string; ins_Id: string }) => {
     );
 
     return response.data;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    throw new Error(error);
   }
 };
 
