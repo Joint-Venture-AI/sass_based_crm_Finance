@@ -57,7 +57,6 @@ const fetchTransactions = async (accessToken: string) => {
   }
 };
 
-// go card less
 const getToken = async (data: any) => {
   console.log(data);
 
@@ -89,6 +88,11 @@ const getToken = async (data: any) => {
 };
 
 const BuildLink = async (data2: { token: string; ins_Id: string }) => {
+  const data3 = {
+    institution_id: data2.ins_Id,
+    access_scope: ["balances", "details", "transactions"],
+  };
+
   const config = {
     headers: {
       accept: "application/json",
@@ -98,11 +102,19 @@ const BuildLink = async (data2: { token: string; ins_Id: string }) => {
   };
 
   try {
+    const res = await axios.post(
+      "https://bankaccountdata.gocardless.com/api/v2/agreements/enduser/",
+      data3,
+      config
+    );
+    console.log(res.data);
+
     const data = {
-      redirect: "https://httpbin.org/get",
-      institution_id: data2.ins_Id,
-      reference: "124151asdasd",
+      redirect: "http://localhost:3000/",
+      institution_id: res.data.institution_id,
+      reference: "124151",
       user_language: "EN",
+      agreement: res.data.id,
     };
 
     const response = await axios.post(
