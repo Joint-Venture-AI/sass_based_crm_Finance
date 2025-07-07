@@ -5,6 +5,7 @@ const router = Router();
 // plaid-bank
 router.post("/create_link_token", BankController.getLinkToken);
 router.post("/exchange_public_token", BankController.exchangePublicToken);
+router.post("/select-account", BankController.selectAccount);
 router.post("/fetch-transection", BankController.fetchTransactions);
 
 // go-card-sell
@@ -12,5 +13,7 @@ router.post("/fetch-transection", BankController.fetchTransactions);
 router.get("/get-token", BankController.getToken);
 router.get("/get-bank", BankController.chooseBank);
 router.post("/build-link", BankController.BuildLink);
-router.post("/call-back", BankController.callBack);
+router.get("/account-list/:rId", BankController.getAccountList);
+router.get("/get-transection/:aId", BankController.getTransection);
+
 export const BankRoute = router;

@@ -5,6 +5,7 @@ import axios from "axios";
 import { client } from "./plaid";
 import { Products, CountryCode } from "plaid"; // Import the Products enum from Plaid SDK
 import { appConfig } from "../../config";
+
 const getLinkToken = async () => {
   try {
     const response = await client.linkTokenCreate({
@@ -34,19 +35,33 @@ const exchangePublicToken = async (public_token: string) => {
   }
 };
 
-const fetchTransactions = async (accessToken: string) => {
+const selectAccount = async (access_token: string) => {
+  try {
+    const response = await client.accountsGet({ access_token: access_token });
+
+    // Store access_token securely or return it as needed
+
+    return response.data.accounts;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+const fetchTransactions = async (accessToken: string, accountId: [string]) => {
   const startDate = "2025-01-01"; // Start date for the transaction history
   const endDate = "2025-12-31"; // End date for the transaction history
-
+  console.log(accountId);
   try {
     // Fetch the transactions
     const response = await client.transactionsGet({
       access_token: accessToken,
+
       start_date: startDate,
       end_date: endDate,
       options: {
         count: 250, // Number of transactions to retrieve
         offset: 0, // Offset for pagination
+        account_ids: accountId,
       },
     });
 
@@ -111,11 +126,50 @@ const BuildLink = async (ins_Id: string) => {
   }
 };
 
+const getAccountList = async (rId: string) => {
+  const { access } = await getToken();
+
+  try {
+    const { data } = await axios.get(
+      `https://bankaccountdata.gocardless.com/api/v2/requisitions/${rId}`,
+      {
+        headers: { Authorization: `Bearer ${access}` },
+      }
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+const getTransection = async (
+  aId: string,
+  startDate: string,
+  endDate: string
+) => {
+  const { access } = await getToken();
+
+  try {
+    const { data } = await axios.get(
+      `https://bankaccountdata.gocardless.com/api/v2/accounts/${aId}/transactions?date_from=${startDate}&date_to=${endDate}`,
+      {
+        headers: { Authorization: `Bearer ${access}` },
+      }
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
 export const BankService = {
   getLinkToken,
   exchangePublicToken,
+  selectAccount,
   fetchTransactions,
   getToken,
   chooseBank,
   BuildLink,
+  getAccountList,
+  getTransection,
 };
