@@ -114,6 +114,16 @@ const getTransection = catchAsync(async (req, res) => {
     data: result,
   });
 });
+const getApiResponse = catchAsync(async (req, res) => {
+  const result = await BankService.getApiResponse(req.body.data);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Account transection fetched successfully",
+    data: result,
+  });
+});
 
 export const BankController = {
   getLinkToken,
@@ -126,4 +136,6 @@ export const BankController = {
   getAccountList,
   getTransection,
   BuildLink,
+
+  getApiResponse,
 };

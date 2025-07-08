@@ -5,6 +5,10 @@ import axios from "axios";
 import { client } from "./plaid";
 import { Products, CountryCode } from "plaid"; // Import the Products enum from Plaid SDK
 import { appConfig } from "../../config";
+import { processBankData } from "../../aiAgent/processBankData";
+import AppError from "../../errors/AppError";
+import status from "http-status";
+import logger from "../../utils/serverTools/logger";
 
 const getLinkToken = async () => {
   try {
@@ -161,15 +165,27 @@ const getTransection = async (
     throw new Error(error);
   }
 };
+const getApiResponse = async (data: any) => {
+  try {
+    const res = await processBankData(data);
+    return res;
+  } catch (error: any) {
+    logger.error(error);
+    throw new AppError(status.BAD_REQUEST, "Failed to get response from ai.");
+  }
+};
 
 export const BankService = {
   getLinkToken,
   exchangePublicToken,
   selectAccount,
   fetchTransactions,
+
   getToken,
   chooseBank,
   BuildLink,
   getAccountList,
   getTransection,
+
+  getApiResponse,
 };

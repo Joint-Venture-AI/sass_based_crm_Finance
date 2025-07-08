@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   sass-rabbitmq:
     image: rabbitmq:3-management
@@ -30,4 +28,3 @@ services:
 networks:
   mongo-cluster:
     external: true
-
