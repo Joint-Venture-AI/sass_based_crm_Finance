@@ -1,21 +1,41 @@
-import { GoogleGenAI } from "@google/genai";
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import dotenv from "dotenv";
 import { appConfig } from "../config";
+import OpenAI from "openai";
 
 dotenv.config();
 
-const ai = new GoogleGenAI({ apiKey: appConfig.ai_key.gemini_ai });
+const client = new OpenAI({
+  apiKey: appConfig.ai_key.gemini_ai,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+});
 
 async function generateContent(prompt: string) {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-001",
-      contents: prompt,
-    });
-    return response.text;
-  } catch (error) {
-    console.error("Error generating content:", error);
-  }
+  console.log(prompt);
+
+  const response = await client.chat.completions.create({
+    model: "gemini-2.0-flash",
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: prompt,
+          },
+          // {
+          //   type: "input_audio",
+          //   input_audio: {
+          //     data: base64Audio,
+          //     format: "wav",
+          //   },
+          // },
+        ],
+      },
+    ],
+  });
+  return response.choices[0].message.content;
 }
 
 export default generateContent;

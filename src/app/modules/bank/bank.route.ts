@@ -17,6 +17,6 @@ router.get("/account-list/:rId", BankController.getAccountList);
 router.get("/get-transection/:aId", BankController.getTransection);
 
 // Ai Response -- for test only
-router.get("/ai-response", BankController.getApiResponse);
+router.post("/ai-response", BankController.getApiResponse);
 
 export const BankRoute = router;

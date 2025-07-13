@@ -120,7 +120,7 @@ const getApiResponse = catchAsync(async (req, res) => {
   sendResponse(res, {
     success: true,
     statusCode: status.OK,
-    message: "Account transection fetched successfully",
+    message: "Ai response is fetched successfully",
     data: result,
   });
 });
