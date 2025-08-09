@@ -9,6 +9,7 @@ import { processBankData } from "../../aiAgent/processBankData";
 import AppError from "../../errors/AppError";
 import status from "http-status";
 import logger from "../../utils/serverTools/logger";
+import { normalizeTransactions } from "./utils";
 
 const getLinkToken = async () => {
   try {
@@ -73,8 +74,8 @@ const fetchTransactions = async (accessToken: string, accountId: [string]) => {
 
     // Do something with the transactions, e.g., store them in your database
     return response.data;
-  } catch (error) {
-    console.error("Error fetching transactions:", error);
+  } catch (error: any) {
+    throw new Error(error);
   }
 };
 
@@ -160,7 +161,7 @@ const getTransection = async (
         headers: { Authorization: `Bearer ${access}` },
       }
     );
-    return data;
+    return normalizeTransactions(data.transactions.booked, "gocardless");
   } catch (error: any) {
     throw new Error(error);
   }
