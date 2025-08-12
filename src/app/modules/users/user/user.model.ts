@@ -9,6 +9,7 @@ const userSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, select: false },
   role: { type: String, enum: userRole, default: "USER" },
+  requisitionId: { type: String },
   authentication: {
     expDate: { type: Date, default: null },
     otp: { type: Number, default: null },
@@ -16,7 +17,11 @@ const userSchema = new Schema<IUser>({
   },
   isVerified: { type: Boolean, default: false },
   needToResetPass: { type: Boolean, default: false },
+  bankAccount: { type: [String] },
 });
+
+// requisitionId: string;
+// accountId: string[];
 
 userSchema.methods.comparePassword = async function (enteredPassword: string) {
   try {

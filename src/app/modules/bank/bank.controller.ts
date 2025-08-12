@@ -80,7 +80,7 @@ const chooseBank = catchAsync(async (req, res) => {
 });
 
 const BuildLink = catchAsync(async (req, res) => {
-  const result = await BankService.BuildLink(req.body.ins_Id);
+  const result = await BankService.BuildLink(req.body.ins_Id, req.user.userId);
 
   sendResponse(res, {
     success: true,
@@ -90,7 +90,7 @@ const BuildLink = catchAsync(async (req, res) => {
   });
 });
 const getAccountList = catchAsync(async (req, res) => {
-  const result = await BankService.getAccountList(req.params.rId);
+  const result = await BankService.getAccountList(req.user.userId);
 
   sendResponse(res, {
     success: true,
@@ -99,6 +99,18 @@ const getAccountList = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+const getAccountDetails = catchAsync(async (req, res) => {
+  const result = await BankService.getAccountDetails(req.params.aId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Account details fetched successfully",
+    data: result,
+  });
+});
+
 const getTransection = catchAsync(async (req, res) => {
   const { date_from, date_to } = req.query;
   const result = await BankService.getTransection(
@@ -134,6 +146,7 @@ export const BankController = {
   getToken,
   chooseBank,
   getAccountList,
+  getAccountDetails,
   getTransection,
   BuildLink,
 

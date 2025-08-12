@@ -12,6 +12,8 @@ export interface IBaseUser {
   };
   isVerified: boolean;
   needToResetPass: boolean;
+  requisitionId: string;
+  bankAccount: string[];
 }
 
 export interface IUser extends IBaseUser, Document {

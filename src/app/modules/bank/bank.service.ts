@@ -10,6 +10,8 @@ import AppError from "../../errors/AppError";
 import status from "http-status";
 import logger from "../../utils/serverTools/logger";
 import { normalizeTransactions } from "./utils";
+import User from "../users/user/user.model";
+import { decrypt, encrypt } from "../../utils/helper/encrypt&decrypt";
 
 const getLinkToken = async () => {
   try {
@@ -79,7 +81,7 @@ const fetchTransactions = async (accessToken: string, accountId: [string]) => {
   }
 };
 
-//gocardless
+//gocardless--------------------------------------------------------
 
 const getToken = async () => {
   const res = await axios.post(
@@ -110,7 +112,7 @@ const chooseBank = async () => {
   return res2.data;
 };
 
-const BuildLink = async (ins_Id: string) => {
+const BuildLink = async (ins_Id: string, userId: string) => {
   const { access } = await getToken();
 
   try {
@@ -125,18 +127,55 @@ const BuildLink = async (ins_Id: string) => {
         headers: { Authorization: `Bearer ${access}` },
       }
     );
+    console.log(userId);
+    await User.findOneAndUpdate(
+      { _id: userId },
+      { requisitionId: encrypt(data.id) }
+    );
+
     return { id: data.id, link: data.link };
   } catch (error: any) {
     throw new Error(error);
   }
 };
 
-const getAccountList = async (rId: string) => {
+const getAccountList = async (userId: string) => {
+  const userData = await User.findOne({ _id: userId });
+
+  if (!userData) {
+    throw new AppError(status.NOT_FOUND, "User data not found");
+  }
+
+  if (!userData.requisitionId) {
+    throw new AppError(status.NOT_FOUND, "User requisition id not found");
+  }
+
   const { access } = await getToken();
 
   try {
     const { data } = await axios.get(
-      `https://bankaccountdata.gocardless.com/api/v2/requisitions/${rId}`,
+      `https://bankaccountdata.gocardless.com/api/v2/requisitions/${decrypt(
+        userData.requisitionId
+      )}`,
+      {
+        headers: { Authorization: `Bearer ${access}` },
+      }
+    );
+
+    userData.bankAccount = data.accounts;
+    await userData.save();
+    return data;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+const getAccountDetails = async (aId: string) => {
+  const { access } = await getToken();
+
+  try {
+    const { data } = await axios.get(
+      `https://bankaccountdata.gocardless.com/api/v2/accounts/${aId}/details`,
       {
         headers: { Authorization: `Bearer ${access}` },
       }
@@ -186,6 +225,7 @@ export const BankService = {
   chooseBank,
   BuildLink,
   getAccountList,
+  getAccountDetails,
   getTransection,
 
   getApiResponse,
