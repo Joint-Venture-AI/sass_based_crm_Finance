@@ -36,8 +36,20 @@ const getFormResponseDetails = catchAsync(async (req, res) => {
   });
 });
 
+const getUserEvaluationData = catchAsync(async (req, res) => {
+  const result = await FormResponseService.getUserEvaluationData(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "User evaluation data fetched successfully",
+    data: result,
+  });
+});
+
 export const FormResponseController = {
   saveResponse,
   getFormResponseDetails,
   getFormResponseFromAllUser,
+  getUserEvaluationData,
 };

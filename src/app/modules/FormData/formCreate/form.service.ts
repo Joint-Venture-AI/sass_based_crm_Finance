@@ -6,6 +6,8 @@ import { IForm } from "./form.interface";
 import { Form } from "./form.model";
 
 const createForm = async (data: IForm, userId: string) => {
+  console.log(data);
+
   try {
     const form = await Form.create({
       title: data.title,

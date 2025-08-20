@@ -5,6 +5,9 @@ import { IFormSubmission } from "./formResponse.interface";
 import { Form } from "../formCreate/form.model";
 import { FormSubmission } from "./formResponse.model";
 
+import { evaluateUserAnswers } from "../../../aiAgent/gemini";
+import { extractAnswers } from "./utils";
+
 const saveResponse = async (data: IFormSubmission) => {
   try {
     const form = await Form.findById(data.formId).lean();
@@ -156,8 +159,23 @@ const getFormResponseFromAllUser = async (formId: string) => {
   return result;
 };
 
+const getUserEvaluationData = async (data: {
+  formId: string;
+  userEmail: string;
+  userResponse: any;
+}) => {
+  const userAns = extractAnswers(data.userResponse);
+  console.log(userAns);
+  return {
+    formId: data.formId,
+    userEmail: data.userEmail,
+    result: await evaluateUserAnswers(userAns),
+  };
+};
+
 export const FormResponseService = {
   saveResponse,
   getFormResponseFromAllUser,
   getFormResponseDetails,
+  getUserEvaluationData,
 };

@@ -5,13 +5,15 @@ import axios from "axios";
 import { client } from "./plaid";
 import { Products, CountryCode } from "plaid"; // Import the Products enum from Plaid SDK
 import { appConfig } from "../../config";
-import { processBankData } from "../../aiAgent/processBankData";
+
 import AppError from "../../errors/AppError";
 import status from "http-status";
 import logger from "../../utils/serverTools/logger";
-import { normalizeTransactions } from "./utils";
+// import { normalizeTransactions } from "./utils";
 import User from "../users/user/user.model";
 import { decrypt, encrypt } from "../../utils/helper/encrypt&decrypt";
+import { simplifyTransactions } from "./utils";
+import categorizeTransactions from "../../aiAgent/gemini";
 
 const getLinkToken = async () => {
   try {
@@ -200,14 +202,17 @@ const getTransection = async (
         headers: { Authorization: `Bearer ${access}` },
       }
     );
-    return normalizeTransactions(data.transactions.booked, "gocardless");
+    //return normalizeTransactions(data.transactions.booked, "gocardless");
+    return await simplifyTransactions(data?.transactions);
+    return data.transactions;
   } catch (error: any) {
     throw new Error(error);
   }
 };
+
 const getApiResponse = async (data: any) => {
   try {
-    const res = await processBankData(data);
+    const res = await categorizeTransactions(data);
     return res;
   } catch (error: any) {
     logger.error(error);
