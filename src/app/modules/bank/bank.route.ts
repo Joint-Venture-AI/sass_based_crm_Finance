@@ -15,7 +15,11 @@ router.get("/get-bank", BankController.chooseBank);
 router.post("/build-link", auth("USER"), BankController.BuildLink);
 router.get("/account-list", auth("USER"), BankController.getAccountList);
 router.get("/account-details/:aId", BankController.getAccountDetails);
-router.get("/get-transection/:aId", BankController.getTransection);
+router.get(
+  "/get-transection/:aId",
+  auth("USER"),
+  BankController.getTransection
+);
 
 // Ai Response -- for test only
 router.post("/ai-response", BankController.getApiResponse);

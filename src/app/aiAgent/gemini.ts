@@ -19,6 +19,7 @@ interface CategorizedTransaction {
   date: string;
   description: string;
   categoryType?: string; // Only for expense
+  tId: string;
 }
 
 async function categorizeTransactions(transactions: any[]) {
@@ -36,6 +37,7 @@ Return only valid JSON array following this schema:
     "date": "YYYY-MM-DD",
     "description": string,
     "categoryType"?: string // required for expense
+    tId: string;
   }
 ]
 
@@ -96,23 +98,30 @@ export async function evaluateUserAnswers(answers: FormattedAnswer[]) {
   const prompt = `
 You are an HR assessment assistant.
 You will be given a set of questions and the user's answers.
-Your job is to analyze them and assign numeric scores (0–10) to the following skills:
+Your job is to:
 
+1. Assign numeric scores (0–10) to the following skills:
 ${skills.join(", ")}
 
-Rules:
-- Every skill must have a score.
-- Also add a short explanation for why the score was given.
-- Return ONLY valid JSON array of objects like this:
+2. Add a short explanation for each score.
 
-[
-  {
-    "skill": "Determination",
-    "score": 8,
-    "explanation": "The user shows persistence by working until completion even if tasks are boring."
-  },
-  ...
-]
+3. Evaluate the overall **consistency of the answers** in terms of whether they align with the user's skill profile. Give a percentage score (0–100%) indicating how internally consistent the user's answers are.
+
+Rules:
+- Every skill must have a score and an explanation.
+- Return ONLY valid JSON like this:
+
+{
+  "skills": [
+    {
+      "skill": "Determination",
+      "score": 8,
+      "explanation": "The user shows persistence by working until completion even if tasks are boring."
+    },
+    ...
+  ],
+  "consistency": 87
+}
 
 User Answers:
 ${JSON.stringify(answers, null, 2)}
@@ -128,7 +137,12 @@ ${JSON.stringify(answers, null, 2)}
   const rawContent = response.choices[0]?.message?.content;
 
   try {
-    return JSON.parse(rawContent as string) as UserSkillEvaluation[];
+    const parsed = JSON.parse(rawContent as string) as {
+      skills: UserSkillEvaluation[];
+      consistency: number;
+    };
+
+    return parsed;
   } catch (err) {
     console.error("Failed to parse AI response:", rawContent);
     throw err;

@@ -165,7 +165,7 @@ const getUserEvaluationData = async (data: {
   userResponse: any;
 }) => {
   const userAns = extractAnswers(data.userResponse);
-  console.log(userAns);
+
   return {
     formId: data.formId,
     userEmail: data.userEmail,

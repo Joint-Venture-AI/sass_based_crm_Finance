@@ -116,7 +116,8 @@ const getTransection = catchAsync(async (req, res) => {
   const result = await BankService.getTransection(
     req.params.aId,
     date_from as string,
-    date_to as string
+    date_to as string,
+    req.user.userId
   );
 
   sendResponse(res, {

@@ -14,6 +14,7 @@ import User from "../users/user/user.model";
 import { decrypt, encrypt } from "../../utils/helper/encrypt&decrypt";
 import { simplifyTransactions } from "./utils";
 import categorizeTransactions from "../../aiAgent/gemini";
+import { saveTransactionsSkipDuplicates } from "./bank.save.to.db";
 
 const getLinkToken = async () => {
   try {
@@ -83,7 +84,7 @@ const fetchTransactions = async (accessToken: string, accountId: [string]) => {
   }
 };
 
-//gocardless--------------------------------------------------------
+//---------------------------------------------------gocardless--------------------------------------------------------
 
 const getToken = async () => {
   const res = await axios.post(
@@ -191,7 +192,8 @@ const getAccountDetails = async (aId: string) => {
 const getTransection = async (
   aId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  userId: string
 ) => {
   const { access } = await getToken();
 
@@ -203,7 +205,8 @@ const getTransection = async (
       }
     );
     //return normalizeTransactions(data.transactions.booked, "gocardless");
-    return await simplifyTransactions(data?.transactions);
+    const processedData = await simplifyTransactions(data?.transactions);
+    await saveTransactionsSkipDuplicates(userId, processedData);
     return data.transactions;
   } catch (error: any) {
     throw new Error(error);
@@ -225,13 +228,11 @@ export const BankService = {
   exchangePublicToken,
   selectAccount,
   fetchTransactions,
-
   getToken,
   chooseBank,
   BuildLink,
   getAccountList,
   getAccountDetails,
   getTransection,
-
   getApiResponse,
 };

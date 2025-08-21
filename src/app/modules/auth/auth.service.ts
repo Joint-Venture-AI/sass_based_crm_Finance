@@ -14,7 +14,7 @@ import { appConfig } from "../../config";
 import { IUser } from "../users/user/user.interface";
 import mongoose from "mongoose";
 import { isTimeExpired } from "../../utils/helper/isTimeExpire";
-import { publishJob } from "../../rabbitMq/publisher";
+import { publishJob } from "../../rabbit_mq/publisher";
 
 const createUser = async (data: {
   email: string;
