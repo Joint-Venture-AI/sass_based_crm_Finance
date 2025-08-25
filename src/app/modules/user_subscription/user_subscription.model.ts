@@ -1,3 +1,4 @@
+// src/models/user_subscription.model.ts
 import { Schema, model } from "mongoose";
 import {
   IUserSubscription,
@@ -18,15 +19,23 @@ const UserSubscriptionSchema = new Schema<IUserSubscription>(
       enum: Object.values(SubscriptionInterval),
       required: true,
     },
-    tId: { type: String, required: true, trim: true },
-    payment_status: {
+    status: {
       type: String,
       enum: Object.values(IUserSubscriptionStatus),
       default: IUserSubscriptionStatus.UNPAID,
     },
+    stripeCustomerId: { type: String, trim: true },
+    stripeSubscriptionId: { type: String, trim: true },
+    latestPaymentIntentId: { type: String, trim: true },
+    startedAt: { type: Date },
+    currentPeriodEnd: { type: Date },
   },
   { timestamps: true }
 );
+
+// Indexes for faster lookup by Stripe IDs
+UserSubscriptionSchema.index({ stripeSubscriptionId: 1 });
+UserSubscriptionSchema.index({ stripeCustomerId: 1 });
 
 export const UserSubscription = model<IUserSubscription>(
   "UserSubscription",

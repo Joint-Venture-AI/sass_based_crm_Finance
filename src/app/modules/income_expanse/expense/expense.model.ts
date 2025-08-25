@@ -1,4 +1,4 @@
-import { model, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { IExpense } from "./expense.interface";
 
 const ExpenseSchema = new Schema<IExpense>(
@@ -8,16 +8,16 @@ const ExpenseSchema = new Schema<IExpense>(
     date: { type: Date, required: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: "EUR" },
-    counterparty: { type: String },
-    description: { type: String },
-    categoryType: { type: String },
+    counterparty: { type: String, default: null },
+    description: { type: String, default: null },
     bookedOrPending: {
       type: String,
       enum: ["booked", "pending"],
       default: "booked",
     },
+    category: { type: String, default: "Uncategorized" }, // <-- hybrid system will update this
   },
   { timestamps: true }
 );
 
-export const Expense = model<IExpense>("Expense", ExpenseSchema);
+export const Expense = mongoose.model<IExpense>("Expense", ExpenseSchema);

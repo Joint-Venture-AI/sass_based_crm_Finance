@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import logger from "../../utils/serverTools/logger";
+
 import { Expense } from "../income_expanse/expense/expense.model";
 import { Income } from "../income_expanse/income/income.mode";
+import { getExpenseCategory } from "./user_trained_category/category.utils";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type RawTransaction = {
@@ -28,7 +29,7 @@ export async function saveTransactionsSkipDuplicates(
     else if (tx.type === "expense") expenseTransactions.push(tx);
   });
 
-  // Helper to filter out existing transactions
+  // Filter duplicates
   async function filterNewTransactions(
     model: any,
     transactions: RawTransaction[]
@@ -41,11 +42,10 @@ export async function saveTransactionsSkipDuplicates(
     return transactions.filter((tx) => !existingSet.has(tx.tId));
   }
 
-  // Filter duplicates
   const newIncomes = await filterNewTransactions(Income, incomeTransactions);
   const newExpenses = await filterNewTransactions(Expense, expenseTransactions);
 
-  // Map to Mongoose format
+  // Map income
   const incomeDocs = newIncomes.map((tx) => ({
     user: userId,
     tId: tx.tId,
@@ -57,23 +57,26 @@ export async function saveTransactionsSkipDuplicates(
     bookedOrPending: tx.bookedOrPending || "booked",
   }));
 
-  const expenseDocs = newExpenses.map((tx) => ({
-    user: userId,
-    tId: tx.tId,
-    date: new Date(tx.date),
-    amount: Math.abs(tx.amount),
-    currency: tx.currency || "EUR",
-    counterparty: tx.counterparty || null,
-    description: tx.description || null,
-    bookedOrPending: tx.bookedOrPending || "booked",
-  }));
+  // Map expense with category
+  const expenseDocs = [];
+  for (const tx of newExpenses) {
+    const category = await getExpenseCategory(userId, tx.counterparty); // auto classify
+    expenseDocs.push({
+      user: userId,
+      tId: tx.tId,
+      date: new Date(tx.date),
+      amount: Math.abs(tx.amount),
+      currency: tx.currency || "EUR",
+      counterparty: tx.counterparty || null,
+      description: tx.description || null,
+      bookedOrPending: tx.bookedOrPending || "booked",
+      category,
+    });
+  }
 
   // Save to DB
   const savedIncomes = await Income.insertMany(incomeDocs);
   const savedExpenses = await Expense.insertMany(expenseDocs);
 
-  logger.info(
-    `Saved ${savedIncomes.length} new incomes and ${savedExpenses.length} new expenses.`
-  );
   return { incomes: savedIncomes, expenses: savedExpenses };
 }

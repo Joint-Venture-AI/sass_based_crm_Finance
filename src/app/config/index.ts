@@ -54,7 +54,7 @@ export const appConfig = {
 
   payment: {
     stripe: {
-      secret_key: process.env.SECRET_KEY,
+      secret_key: process.env.STRIPE_SECRET_KEY,
       webhook: process.env.STRIPE_WEBHOOK_SECRET,
     },
   },

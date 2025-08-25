@@ -1,3 +1,7 @@
+import {
+  checkUserSubscriptionStatus,
+  createSubscriptionSession,
+} from "./../user_subscription/user_subscription.service";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import status from "http-status";
 import AppError from "../../errors/AppError";
@@ -69,6 +73,7 @@ const createUser = async (data: {
     session.endSession();
 
     return {
+      _id: createdUser[0]._id,
       email: createdUser[0].email,
       isVerified: createdUser[0].isVerified,
     };
@@ -98,6 +103,10 @@ const userLogin = async (loginData: {
 
   if (!isPassMatch) {
     throw new AppError(status.BAD_REQUEST, "Please check your password.");
+  }
+
+  if ((await checkUserSubscriptionStatus(userData._id as string)) === false) {
+    throw new AppError(status.BAD_REQUEST, "Your subscription is ended.");
   }
 
   const jwtPayload = {
@@ -137,6 +146,7 @@ const verifyUser = async (
   isVerified: boolean | undefined;
   needToResetPass: boolean | undefined;
   token: string | null;
+  subscriptionSession: any;
 }> => {
   if (!otp) {
     throw new AppError(status.BAD_REQUEST, "Give the Code. Check your email.");
@@ -155,7 +165,7 @@ const verifyUser = async (
   if (otp !== user.authentication.otp) {
     throw new AppError(status.BAD_REQUEST, "Code not matched.");
   }
-
+  let subscriptionSession;
   let updatedUser;
   let token = null;
   if (user.isVerified) {
@@ -178,15 +188,23 @@ const verifyUser = async (
       { new: true }
     );
   } else {
-    updatedUser = await User.findOneAndUpdate(
-      { email: user.email },
-      {
-        "authentication.otp": null,
-        "authentication.expDate": null,
-        isVerified: true,
-      },
-      { new: true }
-    );
+    //---------------------------------------------
+    try {
+      subscriptionSession = await createSubscriptionSession(user._id as string);
+
+      updatedUser = await User.findOneAndUpdate(
+        { email: user.email },
+        {
+          "authentication.otp": null,
+          "authentication.expDate": null,
+          isVerified: true,
+        },
+        { new: true }
+      );
+    } catch (error: any) {
+      throw new Error(error);
+    }
+    //---------------------------------------------
   }
 
   return {
@@ -195,6 +213,7 @@ const verifyUser = async (
     isVerified: updatedUser?.isVerified,
     needToResetPass: updatedUser?.needToResetPass,
     token: token,
+    subscriptionSession: subscriptionSession || "",
   };
 };
 
