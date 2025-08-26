@@ -88,52 +88,63 @@ const userLogin = async (loginData: {
   email: string;
   password: string;
 }): Promise<{ accessToken: string; userData: any; refreshToken: string }> => {
+  // 1️⃣ Fetch user with password, keep Mongoose document for comparePassword
   const userData = await User.findOne({ email: loginData.email }).select(
     "+password"
   );
+
   if (!userData) {
     throw new AppError(status.BAD_REQUEST, "Please check your email");
   }
 
-  if (userData.isVerified === false) {
+  if (!userData.isVerified) {
     throw new AppError(status.BAD_REQUEST, "Please verify your email.");
   }
 
+  // 2️⃣ Keep your instance method for password check
   const isPassMatch = await userData.comparePassword(loginData.password);
 
   if (!isPassMatch) {
     throw new AppError(status.BAD_REQUEST, "Please check your password.");
   }
 
-  if ((await checkUserSubscriptionStatus(userData._id as string)) === false) {
+  // 3️⃣ Check subscription status
+  const hasActiveSubscription = await checkUserSubscriptionStatus(
+    (userData._id as any).toString()
+  );
+  if (!hasActiveSubscription) {
     throw new AppError(status.BAD_REQUEST, "Your subscription is ended.");
   }
 
+  // 4️⃣ JWT payload
   const jwtPayload = {
     userEmail: userData.email,
     userId: userData._id,
     userRole: userData.role,
   };
 
-  const accessToken = jsonWebToken.generateToken(
-    jwtPayload,
-    appConfig.jwt.jwt_access_secret as string,
-    appConfig.jwt.jwt_access_exprire
-  );
+  // 5️⃣ Generate tokens in parallel
+  const [accessToken, refreshToken] = await Promise.all([
+    jsonWebToken.generateToken(
+      jwtPayload,
+      appConfig.jwt.jwt_access_secret as string,
+      appConfig.jwt.jwt_access_exprire
+    ),
+    jsonWebToken.generateToken(
+      jwtPayload,
+      appConfig.jwt.jwt_refresh_secret as string,
+      appConfig.jwt.jwt_refresh_exprire
+    ),
+  ]);
 
-  const refreshToken = jsonWebToken.generateToken(
-    jwtPayload,
-    appConfig.jwt.jwt_refresh_secret as string,
-    appConfig.jwt.jwt_refresh_exprire
-  );
+  // 6️⃣ Remove password before returning
+  const userObj = userData.toObject();
+  userObj.password = "";
 
   return {
     accessToken,
     refreshToken,
-    userData: {
-      ...userData.toObject(),
-      password: null,
-    },
+    userData: userObj,
   };
 };
 

@@ -8,7 +8,12 @@ import {
 
 const UserSubscriptionSchema = new Schema<IUserSubscription>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
     subscriptionId: {
       type: Schema.Types.ObjectId,
       ref: "SubscriptionPackage",

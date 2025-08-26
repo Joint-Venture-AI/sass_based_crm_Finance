@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { MerchantCategory } from "../../bank/user_trained_category/category.interface_model";
 import { Expense } from "./expense.model";
 
@@ -12,10 +12,10 @@ const updateExpenseCategory = async (
   if (!expense) throw new Error("Expense not found");
 
   // 2. Update expense category
-  expense.category = newCategory;
+  expense.category = newCategory?.toLowerCase();
   await expense.save();
 
-  // 3. Update / create user-trained merchant mapping
+  // 3. Update / create global merchant mapping
   if (expense.counterparty) {
     const normalizedName = expense.counterparty
       .toLowerCase()
@@ -23,9 +23,8 @@ const updateExpenseCategory = async (
       .trim();
 
     await MerchantCategory.findOneAndUpdate(
-      { userId: new mongoose.Types.ObjectId(userId), normalizedName },
+      { normalizedName },
       {
-        userId: userId,
         merchantName: expense.counterparty,
         normalizedName,
         category: newCategory,
@@ -35,7 +34,6 @@ const updateExpenseCategory = async (
   }
   return expense;
 };
-
 export const ExpenseService = {
   updateExpenseCategory,
 };

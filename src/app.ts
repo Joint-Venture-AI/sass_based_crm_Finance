@@ -38,7 +38,7 @@ app.use(limiter);
 app.use("/api", router);
 
 app.get("/", (req, res) => {
-  res.send("Hello World! This app name is TEST");
+  res.send("Hello World! This app name is Sass based crm");
 });
 
 app.use(express.static(path.join(process.cwd(), "uploads")));

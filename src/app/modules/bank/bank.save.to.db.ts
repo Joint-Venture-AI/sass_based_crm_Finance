@@ -60,7 +60,7 @@ export async function saveTransactionsSkipDuplicates(
   // Map expense with category
   const expenseDocs = [];
   for (const tx of newExpenses) {
-    const category = await getExpenseCategory(userId, tx.counterparty); // auto classify
+    const category = await getExpenseCategory(tx.counterparty); // auto classify
     expenseDocs.push({
       user: userId,
       tId: tx.tId,
@@ -79,4 +79,39 @@ export async function saveTransactionsSkipDuplicates(
   const savedExpenses = await Expense.insertMany(expenseDocs);
 
   return { incomes: savedIncomes, expenses: savedExpenses };
+}
+
+interface SimplifiedTransaction {
+  tId: string;
+  date: string;
+  amount: number;
+  currency: string;
+  counterparty?: string;
+  description?: string;
+  type: "income" | "expense";
+  bookedOrPending: "booked" | "pending";
+}
+
+export async function simplifyTransactions(data: {
+  booked: any[];
+  pending: any[];
+}) {
+  const mapTx = (
+    tx: any,
+    status: "booked" | "pending"
+  ): SimplifiedTransaction => ({
+    tId: tx.transactionId,
+    date: tx.bookingDate,
+    amount: parseFloat(tx.transactionAmount.amount),
+    currency: tx.transactionAmount.currency,
+    counterparty: tx.creditorName || tx.remittanceInformationUnstructured || "",
+    description: tx.remittanceInformationUnstructured || "",
+    type: parseFloat(tx.transactionAmount.amount) >= 0 ? "income" : "expense",
+    bookedOrPending: status,
+  });
+
+  return [
+    ...data.booked.map((tx) => mapTx(tx, "booked")),
+    ...data.pending.map((tx) => mapTx(tx, "pending")),
+  ];
 }

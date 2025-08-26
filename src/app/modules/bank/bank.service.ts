@@ -12,9 +12,12 @@ import logger from "../../utils/serverTools/logger";
 // import { normalizeTransactions } from "./utils";
 import User from "../users/user/user.model";
 import { decrypt, encrypt } from "../../utils/helper/encrypt&decrypt";
-import { simplifyTransactions } from "./utils";
+
 import categorizeTransactions from "../../aiAgent/gemini";
-import { saveTransactionsSkipDuplicates } from "./bank.save.to.db";
+import {
+  saveTransactionsSkipDuplicates,
+  simplifyTransactions,
+} from "./bank.save.to.db";
 
 const getLinkToken = async () => {
   try {

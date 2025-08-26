@@ -8,13 +8,11 @@ function normalizeMerchant(name?: string) {
 }
 
 export async function getExpenseCategory(
-  userId: string,
   counterparty?: string
 ): Promise<string> {
   const normalized = normalizeMerchant(counterparty);
 
   const mapping = await MerchantCategory.findOne({
-    userId,
     normalizedName: normalized,
   });
   if (mapping) return mapping.category;
