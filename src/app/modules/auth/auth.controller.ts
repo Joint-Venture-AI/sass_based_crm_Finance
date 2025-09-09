@@ -7,6 +7,7 @@ import { appConfig } from "../../config";
 
 const createUser = catchAsync(async (req, res) => {
   const userData = req.body;
+
   const result = await AuthService.createUser(userData);
 
   sendResponse(res, {
@@ -18,8 +19,9 @@ const createUser = catchAsync(async (req, res) => {
 });
 
 const userLogin = catchAsync(async (req, res, next) => {
+  console.time();
   const result = await AuthService.userLogin(req.body);
-
+  console.timeEnd();
   res.cookie("refreshToken", result.refreshToken, {
     secure: appConfig.server.node_env === "production",
     httpOnly: true,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   checkUserSubscriptionStatus,
   createSubscriptionSession,
@@ -87,64 +88,62 @@ const createUser = async (data: {
 const userLogin = async (loginData: {
   email: string;
   password: string;
-}): Promise<{ accessToken: string; userData: any; refreshToken: string }> => {
-  // 1️⃣ Fetch user with password, keep Mongoose document for comparePassword
-  const userData = await User.findOne({ email: loginData.email }).select(
+}): Promise<{ accessToken: string; refreshToken: string; userData: any }> => {
+  // 1️⃣ Fetch user + password
+  const user = await User.findOne({ email: loginData.email }).select(
     "+password"
   );
 
-  if (!userData) {
-    throw new AppError(status.BAD_REQUEST, "Please check your email");
+  if (!user)
+    throw new AppError(status.BAD_REQUEST, "Invalid email or password");
+  if (!user.isVerified)
+    throw new AppError(status.BAD_REQUEST, "Email not verified");
+
+  // 2️⃣ Password check
+  const isPasswordValid = await user.comparePassword(loginData.password);
+  if (!isPasswordValid)
+    throw new AppError(status.BAD_REQUEST, "Invalid email or password");
+
+  // 3️⃣ Check subscription (can be done in parallel with token generation if DB allows)
+  let subscriptionPromise: any = false;
+  if (user.role !== "ADMIN") {
+    subscriptionPromise = checkUserSubscriptionStatus(
+      (user._id as string).toString()
+    );
   }
-
-  if (!userData.isVerified) {
-    throw new AppError(status.BAD_REQUEST, "Please verify your email.");
-  }
-
-  // 2️⃣ Keep your instance method for password check
-  const isPassMatch = await userData.comparePassword(loginData.password);
-
-  if (!isPassMatch) {
-    throw new AppError(status.BAD_REQUEST, "Please check your password.");
-  }
-
-  // 3️⃣ Check subscription status
-  const hasActiveSubscription = await checkUserSubscriptionStatus(
-    (userData._id as any).toString()
-  );
-  if (!hasActiveSubscription) {
-    throw new AppError(status.BAD_REQUEST, "Your subscription is ended.");
-  }
-
-  // 4️⃣ JWT payload
-  const jwtPayload = {
-    userEmail: userData.email,
-    userId: userData._id,
-    userRole: userData.role,
+  // 4️⃣ Prepare JWT payload
+  const payload = {
+    userId: user._id,
+    userEmail: user.email,
+    userRole: user.role,
   };
 
   // 5️⃣ Generate tokens in parallel
-  const [accessToken, refreshToken] = await Promise.all([
+  const [accessToken, refreshToken, hasActiveSubscription] = await Promise.all([
     jsonWebToken.generateToken(
-      jwtPayload,
+      payload,
       appConfig.jwt.jwt_access_secret as string,
       appConfig.jwt.jwt_access_exprire
     ),
     jsonWebToken.generateToken(
-      jwtPayload,
+      payload,
       appConfig.jwt.jwt_refresh_secret as string,
       appConfig.jwt.jwt_refresh_exprire
     ),
+    subscriptionPromise,
   ]);
+  if (user.role === "USER") {
+    if (!hasActiveSubscription)
+      throw new AppError(status.BAD_REQUEST, "Subscription ended");
+  }
 
-  // 6️⃣ Remove password before returning
-  const userObj = userData.toObject();
-  userObj.password = "";
+  // 6️⃣ Return only necessary fields
+  const { password, ...safeUser } = user.toObject();
 
   return {
     accessToken,
     refreshToken,
-    userData: userObj,
+    userData: safeUser,
   };
 };
 
